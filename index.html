@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <body onload="autoGetLocation()">
+        <p id="output">位置情報を取得中...</p>
+
+        <script>
+            const targetLat = 33.244765;
+            const targetLng = 131.62293;
+
+            function calculateDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371e3;
+                const rad = Math.PI / 180;
+                const dLat = (lat2 - lat1) * rad;
+                const dLng = (lng2 - lng1) * rad;
+                const a = Math.sin(dLat / 2) ** 2 +
+                    Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+                    Math.sin(dLng / 2) ** 2;
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c;
+            }
+
+            function autoGetLocation() {
+                if (!navigator.geolocation || !navigator.permissions) {
+                    document.getElementById("output").textContent =
+                        "位置情報がサポートされていません。";
+                    return;
+                }
+
+                navigator.permissions.query({ name: "geolocation" }).then((result) => {
+                    if (result.state === "granted") {
+                        navigator.geolocation.getCurrentPosition(showDistance);
+                    } else if (result.state === "prompt") {
+                        navigator.geolocation.getCurrentPosition(showDistance, showError);
+                    } else {
+                        document.getElementById("output").textContent =
+                            "位置情報の使用がブラウザで拒否されています。";
+                    }
+                });
+            }
+
+            function showDistance(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const distance = calculateDistance(lat, lng, targetLat, targetLng);
+                document.getElementById("output").textContent =
+                    `目的地までの距離は約 ${distance.toFixed(2)} メートルです。`;
+            }
+
+            function showError(error) {
+                document.getElementById("output").textContent =
+                    `位置情報の取得に失敗しました: ${error.message}`;
+            }
+        </script>
+    </body>
+
+</body>
+
+</html>
