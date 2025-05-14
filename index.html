@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8">
@@ -9,55 +9,43 @@
 
 <body>
 
-    <body onload="autoGetLocation()">
+    <body onload="GetLocation()">
         <p id="output">位置情報を取得中...</p>
 
         <script>
             const targetLat = 33.244765;
             const targetLng = 131.62293;
-
             function calculateDistance(lat1, lng1, lat2, lng2) {
                 const R = 6371e3;
-                const rad = Math.PI / 180;
-                const dLat = (lat2 - lat1) * rad;
-                const dLng = (lng2 - lng1) * rad;
+                const toRad = Math.PI / 180;
+                const dLat = (lat2 - lat1) * toRad;
+                const dLng = (lng2 - lng1) * toRad;
+
                 const a = Math.sin(dLat / 2) ** 2 +
-                    Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+                    Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
                     Math.sin(dLng / 2) ** 2;
                 const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 return R * c;
             }
 
-            function autoGetLocation() {
-                if (!navigator.geolocation || !navigator.permissions) {
-                    document.getElementById("output").textContent =
-                        "位置情報がサポートされていません。";
+            function getLocation() {
+                if (!navigator.geolocation) {
+                    document.getElementById("output").textContent = "このブラウザでは位置情報が使用できません。";
                     return;
                 }
 
-                navigator.permissions.query({ name: "geolocation" }).then((result) => {
-                    if (result.state === "granted") {
-                        navigator.geolocation.getCurrentPosition(showDistance);
-                    } else if (result.state === "prompt") {
-                        navigator.geolocation.getCurrentPosition(showDistance, showError);
-                    } else {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const distance = calculateDistance(lat, lng, targetLat, targetLng);
+                        document.getElementById("output").textContent = `距離: ${distance}m`;
+                    },
+                    (error) => {
                         document.getElementById("output").textContent =
-                            "位置情報の使用がブラウザで拒否されています。";
+                            `位置情報の取得に失敗しました: ${error.message}`;
                     }
-                });
-            }
-
-            function showDistance(position) {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                const distance = calculateDistance(lat, lng, targetLat, targetLng);
-                document.getElementById("output").textContent =
-                    `距離: ${distance}m`;
-            }
-
-            function showError(error) {
-                document.getElementById("output").textContent =
-                    `位置情報の取得に失敗しました: ${error.message}`;
+                );
             }
         </script>
     </body>
