@@ -4,17 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>位置情報の取得</title>
 </head>
 
 <body>
 
-    <body onload="getLocation()">
-        <p id="output">位置情報を取得中...</p>
-
+    <body onload="getLocation();setInputValue();">
+        <input type="number" placeholder="出席番号" class="index">
+        <button onclick="save()">登録</button>
+        <p class="output">位置情報を取得中...</p>
         <script>
             const targetLat = 33.244765;
             const targetLng = 131.62293;
+
             function calculateDistance(lat1, lng1, lat2, lng2) {
                 const R = 6371e3;
                 const toRad = Math.PI / 180;
@@ -28,9 +30,20 @@
                 return R * c;
             }
 
+            function save() {
+                const index = Number(document.querySelector("input.index").value);
+                localStorage.setItem("index", index);
+                alert("登録できました")
+            }
+
+            function setInputValue() {
+                const index = localStorage.getItem("index");
+                document.querySelector("input.index").value = index
+            }
+
             function getLocation() {
                 if (!navigator.geolocation) {
-                    document.getElementById("output").textContent = "このブラウザでは位置情報が使用できません。";
+                    document.querySelector(".output").textContent = "このブラウザでは位置情報が使用できません。";
                     return;
                 }
 
@@ -39,7 +52,11 @@
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         const distance = calculateDistance(lat, lng, targetLat, targetLng);
-                        document.getElementById("output").textContent = `距離: ${distance}m`;
+                        if (distance < 100) {
+                            document.querySelector(".output").textContent = `距離: ${Math.ceil(distance)}m あなたは学校の中にいます`;
+                        } else {
+                            document.querySelector(".output").textContent = `距離: ${Math.ceil(distance)}m あなたは学校の外にいます`;
+                        }
                     },
                     (error) => {
                         document.getElementById("output").textContent =
